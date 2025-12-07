@@ -23,8 +23,6 @@ def getenv(key: str) -> str:
     return value
 
 CONTAINER_NAME = getenv("CONTAINER_NAME")
-SSH_LOGIN = getenv("SSH_LOGIN")
-SSH_KEY_PATH = PosixPath(getenv("SSH_KEY")).resolve()
 SERVER_DIRECTORY = PosixPath(getenv("SERVER_DIRECTORY"))
 BACKUPS_DIRECTORY = PosixPath(getenv("BACKUPS_DIRECTORY"))
 
