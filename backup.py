@@ -33,7 +33,7 @@ def rcon_safe(command: list[str]):
     try:
         container = docker_client.containers.get(CONTAINER_NAME)
         logger.info(f"Container '{CONTAINER_NAME}' found, running '{command}'...")
-        container.exec_run(["/bin/sh", "rcon-cli", *command])
+        container.exec_run(["rcon-cli", *command])
         logger.info(f"Command ran successfully.")
 
     except docker.errors.NotFound:
