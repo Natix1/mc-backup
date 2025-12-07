@@ -11,7 +11,8 @@ put-requirements:
 get-requirements:
 	./.venv/bin/python -m pip install -r requirements.txt
 create-autorun:
-	echo "${pwd}/.venv/bin/python backup.py" > "backup.sh"
+	echo "#!/bin/bash" > backup.sh
+	echo "$(shell pwd)/.venv/bin/python backup.py" >> backup.sh
 	chmod +x backup.sh
 purge-tmp:
 	sudo rm -r /var/tmp/mc-backup-tempotary*
