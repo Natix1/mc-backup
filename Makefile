@@ -3,7 +3,7 @@ run:
 nuke-venv:
 	rm -rf .venv
 create-venv: nuke-venv
-	./venv/bin/python -m venv .venv
+	python3 -m venv .venv
 put-requirements:
 	./venv/bin/python -m pip freeze > requirements.txt
 get-requirements:
