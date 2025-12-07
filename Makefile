@@ -8,4 +8,6 @@ put-requirements:
 	./.venv/bin/python -m pip freeze > requirements.txt
 get-requirements:
 	./.venv/bin/python -m pip install -r requirements.txt
+purge-tmp:
+	sudo rm -r /var/tmp/mc-backup-tempotary*
 setup: create-venv get-requirements
