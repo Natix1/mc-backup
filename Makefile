@@ -1,5 +1,7 @@
 run:
 	./.venv/bin/python backup.py
+run-if-online:
+	./.venv/bin/python backup_if_online.py
 nuke-venv:
 	rm -rf .venv
 create-venv: nuke-venv
