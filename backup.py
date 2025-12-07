@@ -52,7 +52,7 @@ def rcon_safe(command: list[str]):
 
 # Gives messsages a cool format
 def announce_in_server(message: str):
-    rcon_safe(["tellraw", "@a", ('{"text": "[SERVER] [CAPTAIN BACKUP] %s", color: "blue"') % message])
+    rcon_safe([('tellraw @a {"text": "[SERVER] [CAPTAIN BACKUP] %s", color: "blue"') % message])
 
 def backup():
     announce_in_server("Captain backup is here to protect; expect degraded performance")
