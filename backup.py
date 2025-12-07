@@ -56,7 +56,7 @@ def announce_in_server(message: str):
     rcon_safe(["tellraw", "@a", json_message])
 
 def backup():
-    announce_in_server("Captain backup is here to protect; expect degraded performance")
+    announce_in_server("I, Captain Backup, came to protect. I will now copy files which can affect performance.")
 
     # Flush all chunk writes
     rcon_safe(["save-off"])
@@ -76,7 +76,7 @@ def backup():
     backup_directory = BACKUPS_DIRECTORY / ("backup-" + time_iso)
 
     # COMPRESS!!!!!
-    announce_in_server("I, Captain backup will start compressing the backup now so that we dont run out of disk space. This can slow things down as I eat the cpu cycles")
+    announce_in_server("I, Captain backup, will start compressing the backup now (so that we dont run out of disk space). This can slow things down even more.")
     logger.info("Starting compression. This might take some time...")
     shutil.make_archive(str(backup_directory), "gztar", temp_dir_path)
     logger.info("Compression done.")
@@ -104,11 +104,11 @@ def backup():
         if not backup.is_file():
             continue
 
-        logger.info(f"Removing file {backup.name}; too old. Rule configured to keep only latest {KEEP_LATEST} backups. Continue? y(es)/n(o)\n")
+        logger.info(f"Removing file {backup.name}; too old, as rule configured to keep only latest {KEEP_LATEST} backups.")
         backup.unlink()
 
     logger.info("Done with everything")
-    announce_in_server("All done. Thanks for bearing with me. Captain backup signing off")
+    announce_in_server("I came, I saw, I concuered. And I've just mispelled 'conquered'. And I also wrote 'missspelled' wrong. Anyways. I'm done here. See you next time.")
 
 if __name__ == "__main__":
     backup()
