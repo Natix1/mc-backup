@@ -25,6 +25,7 @@ def getenv(key: str) -> str:
 CONTAINER_NAME = getenv("CONTAINER_NAME")
 SERVER_DIRECTORY = PosixPath(getenv("SERVER_DIRECTORY"))
 BACKUPS_DIRECTORY = PosixPath(getenv("BACKUPS_DIRECTORY"))
+KEEP_LATEST = int(getenv("KEEP_LATEST"))
 
 docker_client = docker.from_env()
 
@@ -33,7 +34,12 @@ def rcon_safe(command: list[str]):
     try:
         container = docker_client.containers.get(CONTAINER_NAME)
         logger.info(f"Container '{CONTAINER_NAME}' found, running '{command}'...")
-        container.exec_run(["rcon-cli", *command])
+        result = container.exec_run(["rcon-cli", *command])
+        if result.exit_code != 0:
+            errror_message = "Non-0 exit after running command in docker. Remote output: " + result.output
+            logger.critical(errror_message)
+            raise ValueError(errror_message)
+
         logger.info(f"Command ran successfully.")
 
     except docker.errors.NotFound:
@@ -44,14 +50,18 @@ def rcon_safe(command: list[str]):
         logger.critical(f"API error when trying to reach docker container '{CONTAINER_NAME}'. Check below for stack trace.\n")
         raise e
 
+# Gives messsages a cool format
+def announce_in_server(message: str):
+    rcon_safe(["tellraw", "@a", ('{"text": "[SERVER] [CAPTAIN BACKUP] %s", color: "blue"') % message])
+
 def backup():
-    rcon_safe([r'tellraw @a {"text": "Server backing up; degraded performance possible", "color":"red"}'])
+    announce_in_server("Captain backup is here to protect; expect degraded performance")
 
     # Flush all chunk writes
     rcon_safe(["save-off"])
     rcon_safe(["save-all"])
 
-    time_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    time_iso = datetime.datetime.now(datetime.timezone.utc).strftime("%d-%m-%Y_%H_%M_%S")
 
     # Hot copy files into tempotary directory
     temp_dir_name = "mc-backup-tempotary-" + time_iso
@@ -65,17 +75,39 @@ def backup():
     backup_directory = BACKUPS_DIRECTORY / ("backup-" + time_iso)
 
     # COMPRESS!!!!!
+    announce_in_server("I, Captain backupm will start compressing the backup now so that we dont run out of disk space. This can slow things down as I eat the cpu cycles")
     logger.info("Starting compression. This might take some time...")
     shutil.make_archive(str(backup_directory), "gztar", temp_dir_path)
     logger.info("Compression done.")
-
-    rcon_safe([r'tellraw @a {"text": "Server backed up", "color":"red"}'])
 
     # Clean up the hot copied directory
     logger.info("Cleaning up tempotary directory")
     shutil.rmtree(temp_dir_path)
     
+    logger.info(f"Time to look for old backups to delete, will only keep {KEEP_LATEST} latest files")
+    
+    # Ok now we look for old files
+    backups: list[PosixPath] = []
+
+    for file in BACKUPS_DIRECTORY.iterdir():
+        if not file.is_file():
+            continue
+        
+        backups.append(file)
+
+    def sort_key(file: PosixPath):
+        return file.stat().st_mtime
+
+    backups.sort(key=sort_key, reverse=True)
+    for backup in backups[KEEP_LATEST:]:
+        if not backup.is_file():
+            continue
+
+        logger.info(f"Removing file {backup.name}; too old. Rule configured to keep only latest {KEEP_LATEST} backups. Continue? y(es)/n(o)\n")
+        backup.unlink()
+
     logger.info("Done with everything")
+    announce_in_server("All done. Thanks for bearing with me. Captain backup signing off")
 
 if __name__ == "__main__":
     backup()
