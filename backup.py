@@ -34,6 +34,10 @@ docker_client = docker.from_env()
 def rcon_safe(command: list[str]) -> bool:
     try:
         container = docker_client.containers.get(CONTAINER_NAME)
+        if container.status != "running":
+            logger.info(f"Container '{CONTAINER_NAME}' offline. Skipping command '{command}'")
+            return False
+
         logger.info(f"Container '{CONTAINER_NAME}' found, running '{command}'...")
         result = container.exec_run(["rcon-cli", *command])
         if result.exit_code != 0:
