@@ -3,9 +3,9 @@ run:
 nuke-venv:
 	rm -rf .venv
 create-venv: nuke-venv
-	python3 -m venv .venv
+	./venv/bin/python -m venv .venv
 put-requirements:
-	python3 -m pip freeze > requirements.txt
+	./venv/bin/python -m pip freeze > requirements.txt
 get-requirements:
-	python3 -m pip install -r requirements.txt
+	./venv/bin/python -m pip install -r requirements.txt
 setup: create-venv get-requirements
