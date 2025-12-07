@@ -1,5 +1,6 @@
 import docker as docker
 import docker.errors
+import docker.types
 import logging
 import os
 import shutil
@@ -29,8 +30,8 @@ KEEP_LATEST = int(getenv("KEEP_LATEST"))
 
 docker_client = docker.from_env()
 
-# Runs command via rcon-cli only if the docker container exists and is up
-def rcon_safe(command: list[str]):
+# Runs command via rcon-cli only if the docker container exists and is up. Optionally returns if the command ended up being executed fully
+def rcon_safe(command: list[str]) -> bool:
     try:
         container = docker_client.containers.get(CONTAINER_NAME)
         logger.info(f"Container '{CONTAINER_NAME}' found, running '{command}'...")
@@ -41,14 +42,15 @@ def rcon_safe(command: list[str]):
             raise ValueError(errror_message)
 
         logger.info(f"Command ran successfully.")
+        return True
 
     except docker.errors.NotFound:
         logger.info(f"Container '{CONTAINER_NAME}' not found. Skipping the command '{command}'")
-        pass
+        return False
 
     except docker.errors.APIError as e:
         logger.critical(f"API error when trying to reach docker container '{CONTAINER_NAME}'. Check below for stack trace.\n")
-        raise e
+        return False
 
 # Gives messsages a cool format
 def announce_in_server(message: str):
