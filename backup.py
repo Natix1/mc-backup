@@ -76,7 +76,7 @@ def backup():
     backup_directory = BACKUPS_DIRECTORY / ("backup-" + time_iso)
 
     # COMPRESS!!!!!
-    announce_in_server("I, Captain backupm will start compressing the backup now so that we dont run out of disk space. This can slow things down as I eat the cpu cycles")
+    announce_in_server("I, Captain backup will start compressing the backup now so that we dont run out of disk space. This can slow things down as I eat the cpu cycles")
     logger.info("Starting compression. This might take some time...")
     shutil.make_archive(str(backup_directory), "gztar", temp_dir_path)
     logger.info("Compression done.")
