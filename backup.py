@@ -73,7 +73,7 @@ def backup():
 
     # Clean up the hot copied directory
     logger.info("Cleaning up tempotary directory")
-    os.removedirs(temp_dir_path)
+    shutil.rmtree(temp_dir_path)
     
     logger.info("Done with everything")
 
