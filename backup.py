@@ -57,7 +57,7 @@ def backup():
     temp_dir_name = "mc-backup-tempotary-" + time_iso
     temp_dir_path = PosixPath("/var/tmp") / temp_dir_name
 
-    shutil.copy(SERVER_DIRECTORY, temp_dir_path)
+    shutil.copytree(SERVER_DIRECTORY, temp_dir_path)
 
     # Enable saving since we copied out files into temp dir
     rcon_safe(["save-on"])
