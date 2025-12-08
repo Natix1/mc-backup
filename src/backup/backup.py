@@ -1,72 +1,39 @@
 import docker as docker
-import docker.errors
-import docker.types
-import logging
 import os
 import shutil
 import datetime
+import src.container.container as docker_container
+
+from src.container.logger import logger
+from src.container.container import getenv_assert
+
+"""
+This allows me to backup my minecraft server, both when it's live and offline, by interacting with docker via the SDK.
+It was originally made for the Kebabland minecraft server
+"""
 
 from dotenv import load_dotenv
-from uuid import uuid4
 from pathlib import PosixPath
 
-load_dotenv()
 
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s")
-logger = logging.getLogger("mc-backup")
-
-def getenv(key: str) -> str:
-    value = os.environ.get(key)
-    if value is None:
-        logger.critical(f"{key} not specified in environment")
-        raise ValueError(f"{key} not specified in environment")
-
-    return value
-
-CONTAINER_NAME = getenv("CONTAINER_NAME")
-SERVER_DIRECTORY = PosixPath(getenv("SERVER_DIRECTORY"))
-BACKUPS_DIRECTORY = PosixPath(getenv("BACKUPS_DIRECTORY"))
-KEEP_LATEST = int(getenv("KEEP_LATEST"))
+CONTAINER_NAME = getenv_assert("CONTAINER_NAME")
+SERVER_DIRECTORY = PosixPath(getenv_assert("SERVER_DIRECTORY"))
+BACKUPS_DIRECTORY = PosixPath(getenv_assert("BACKUPS_DIRECTORY"))
+KEEP_LATEST = int(getenv_assert("KEEP_LATEST"))
 
 docker_client = docker.from_env()
-
-# Runs command via rcon-cli only if the docker container exists and is up. Optionally returns if the command ended up being executed fully
-def rcon_safe(command: list[str]) -> bool:
-    try:
-        container = docker_client.containers.get(CONTAINER_NAME)
-        if container.status != "running":
-            logger.info(f"Container '{CONTAINER_NAME}' offline. Skipping command '{command}'")
-            return False
-
-        logger.info(f"Container '{CONTAINER_NAME}' found, running '{command}'...")
-        result = container.exec_run(["rcon-cli", *command])
-        if result.exit_code != 0:
-            errror_message = "Non-0 exit after running command in docker. Remote output: " + result.output
-            logger.critical(errror_message)
-            raise ValueError(errror_message)
-
-        logger.info(f"Command ran successfully.")
-        return True
-
-    except docker.errors.NotFound:
-        logger.info(f"Container '{CONTAINER_NAME}' not found. Skipping the command '{command}'")
-        return False
-
-    except docker.errors.APIError as e:
-        logger.critical(f"API error when trying to reach docker container '{CONTAINER_NAME}'. Check below for stack trace.\n")
-        return False
 
 # Gives messsages a cool format
 def announce_in_server(message: str):
     json_message = f'{{"text":"[SERVER] [CAPTAIN BACKUP] {message}","color":"blue"}}'
-    rcon_safe(["tellraw", "@a", json_message])
+    docker_container.rcon_safe(["tellraw", "@a", json_message])
 
 def backup():
     announce_in_server("I, Captain Backup, came to protect. I will now copy files which can affect performance.")
 
     # Flush all chunk writes
-    rcon_safe(["save-off"])
-    rcon_safe(["save-all"])
+    docker_container.rcon_safe(["save-off"])
+    docker_container.rcon_safe(["save-all"])
 
     time_iso = datetime.datetime.now(datetime.timezone.utc).strftime("%d-%m-%Y_%H_%M_%S")
 
@@ -77,7 +44,7 @@ def backup():
     shutil.copytree(SERVER_DIRECTORY, temp_dir_path)
 
     # Enable saving since we copied out files into temp dir
-    rcon_safe(["save-on"])
+    docker_container.rcon_safe(["save-on"])
 
     backup_directory = BACKUPS_DIRECTORY / ("backup-" + time_iso)
 
