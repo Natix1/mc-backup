@@ -30,6 +30,7 @@ def main_loop():
 
     if not is_container_running():
         logger.critical("Tried to start auto shutdown when the container isn't currently running")
+        return
 
     while True:
         if is_container_running():
