@@ -16,3 +16,4 @@ cleanup-code-remains:
 nuke: nuke-venv
 
 setup: create-venv get-requirements
+	chmod +x ./scripts/*

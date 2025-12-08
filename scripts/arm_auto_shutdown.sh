@@ -1,0 +1,1 @@
+sudo ./.venv/bin/python -m src.auto-shutdown-host.auto_shutdown
