@@ -19,9 +19,11 @@ logger = logging.getLogger()
 
 REFETCH_TIME = int(os.getenv("AUTO_SHUTDOWN_REFECH_TIME") or 10)
 
+
 def is_container_running() -> bool:
     container = docker_container.get_container()
     return container.status == "running"
+
 
 def main_loop():
     if os.geteuid() != 0:
@@ -29,13 +31,17 @@ def main_loop():
         sys.exit(1)
 
     if not is_container_running():
-        logger.critical("Tried to start auto shutdown when the container isn't currently running")
+        logger.critical(
+            "Tried to start auto shutdown when the container isn't currently running"
+        )
         return
 
     logger.info("Container found and is running, armed auto shutdown")
     while True:
         if is_container_running():
-            logger.debug(f"Container is still running, retrying in {REFETCH_TIME} seconds")
+            logger.debug(
+                f"Container is still running, retrying in {REFETCH_TIME} seconds"
+            )
             time.sleep(REFETCH_TIME)
             continue
 
@@ -44,6 +50,7 @@ def main_loop():
 
         subprocess.run(["shutdown", "now"])
         break
+
 
 if __name__ == "__main__":
     try:

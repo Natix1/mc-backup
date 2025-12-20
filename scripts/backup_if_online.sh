@@ -1,1 +1,0 @@
-./.venv/bin/python -m src.backup.backup_if_online
